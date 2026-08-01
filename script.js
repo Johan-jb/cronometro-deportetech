@@ -1,5 +1,5 @@
 // ============================================
-// CRONÓMETRO FÚTBOL - CON GOOGLE SHEETS
+// CRONÓMETRO FÚTBOL - CON PAUSA DE CÁMARA
 // ============================================
 
 // ⚠️ CAMBIA ESTA URL POR LA QUE TE DÉ GOOGLE APPS SCRIPT
@@ -19,9 +19,12 @@ class CronometroFutbol {
         this.estadoConexion = document.getElementById('estadoConexion');
         
         // Selectores
-        this.categoriaSelect = document.getElementById('categoriaSelect');
         this.jugadorSelect = document.getElementById('jugadorSelect');
         this.distanciaCancha = document.getElementById('distanciaCancha');
+        
+        // Campos de edad y categoría
+        this.edadJugador = document.getElementById('edadJugador');
+        this.categoriaManual = document.getElementById('categoriaManual');
         
         // Estado del cronómetro
         this.estado = 'ESPERANDO';
@@ -38,6 +41,9 @@ class CronometroFutbol {
         this.ultimoEstado = false;
         this.frameId = null;
         
+        // Estado de pausa de cámara
+        this.camaraPausada = false;
+        
         // Datos
         this.jugadores = [];
         this.jugadorSeleccionado = null;
@@ -45,6 +51,7 @@ class CronometroFutbol {
         
         // Inicializar
         this.cargarJugadores();
+        this.limpiarCampos();
         this.inicializarCamara();
         this.configurarEventos();
         this.verificarConexionGoogleSheets();
@@ -78,17 +85,16 @@ class CronometroFutbol {
             
             const payload = {
                 fecha: datos.fecha || new Date().toLocaleString(),
-                categoria: datos.categoria || this.categoriaSelect.value || 'Sin categoría',
+                edad: datos.edad || this.jugadorSeleccionado?.edad || 'N/A',
+                categoria: datos.categoria || this.jugadorSeleccionado?.categoria || 'Sin categoría',
                 jugador: datos.jugador || this.jugadorSeleccionado?.nombre || 'Sin nombre',
                 tiempo: datos.tiempo || '00:00.0',
                 velocidad_ms: Math.round(velocidadMs * 100) / 100,
                 velocidad_kmh: Math.round(velocidadKmh * 100) / 100
             };
             
-            // Mostrar velocidad
             this.velocidadDisplay.textContent = `🏃 ${payload.velocidad_kmh} km/h (${payload.velocidad_ms} m/s)`;
             
-            // Intentar guardar en Google Sheets
             try {
                 await fetch(GOOGLE_SHEETS_URL, {
                     method: 'POST',
@@ -111,7 +117,6 @@ class CronometroFutbol {
                 this.estadoConexion.style.color = '#ffaa00';
             }
             
-            // Guardar en historial local
             this.tiemposGuardados.push(payload);
             this.mostrarHistorialLocal();
             
@@ -141,6 +146,7 @@ class CronometroFutbol {
                 <div class="tiempo-item">
                     <span class="fecha">${t.fecha}</span>
                     <span class="jugador-nombre">${t.jugador}</span>
+                    <span class="edad-categoria">${t.edad} años · ${t.categoria}</span>
                     <span class="tiempo">${t.tiempo}</span>
                     <span class="velocidad-tag">${t.velocidad_kmh} km/h</span>
                 </div>
@@ -158,16 +164,12 @@ class CronometroFutbol {
             if (data) {
                 this.jugadores = JSON.parse(data);
             } else {
-                this.jugadores = [
-                    { id: 1, nombre: 'Juan Pérez', categoria: 'Lunes_Miercoles_6_8' },
-                    { id: 2, nombre: 'Carlos Gómez', categoria: 'Lunes_Miercoles_6_8' },
-                    { id: 3, nombre: 'Luis Martínez', categoria: 'Martes_Jueves_11_13' },
-                    { id: 4, nombre: 'Miguel Sánchez', categoria: 'Martes_Jueves_11_13' }
-                ];
+                this.jugadores = [];
                 this.guardarJugadores();
             }
         } catch (e) {
             console.error('Error:', e);
+            this.jugadores = [];
         }
         this.actualizarSelectores();
     }
@@ -177,20 +179,24 @@ class CronometroFutbol {
     }
     
     actualizarSelectores() {
-        const categoria = this.categoriaSelect.value;
-        this.jugadorSelect.innerHTML = '<option value="">Seleccionar...</option>';
+        this.jugadorSelect.innerHTML = '<option value="">Seleccionar jugador...</option>';
         
-        const filtrados = this.jugadores.filter(j => j.categoria === categoria);
-        filtrados.forEach(j => {
+        this.jugadores.forEach(j => {
             const option = document.createElement('option');
             option.value = j.id;
-            option.textContent = j.nombre;
+            const edadMostrar = j.edad && j.edad !== 'N/A' ? ` ${j.edad} años` : '';
+            const catMostrar = j.categoria && j.categoria !== 'Sin categoría' ? ` · ${j.categoria}` : '';
+            option.textContent = `${j.nombre}${edadMostrar}${catMostrar}`;
             this.jugadorSelect.appendChild(option);
         });
         
-        if (filtrados.length > 0) {
-            this.jugadorSelect.value = filtrados[0].id;
-            this.seleccionarJugador(filtrados[0].id);
+        if (this.jugadores.length === 0) {
+            this.jugadorSeleccionado = null;
+            this.jugadorActualDisplay.textContent = 'Sin jugador seleccionado';
+            this.limpiarCampos();
+        } else {
+            this.jugadorSelect.value = this.jugadores[0].id;
+            this.seleccionarJugador(this.jugadores[0].id);
         }
     }
     
@@ -198,7 +204,29 @@ class CronometroFutbol {
         this.jugadorSeleccionado = this.jugadores.find(j => j.id === parseInt(id));
         if (this.jugadorSeleccionado) {
             this.jugadorActualDisplay.textContent = `👤 ${this.jugadorSeleccionado.nombre}`;
+            if (this.jugadorSeleccionado.edad && this.jugadorSeleccionado.edad !== 'N/A') {
+                this.edadJugador.value = this.jugadorSeleccionado.edad;
+            } else {
+                this.edadJugador.value = '';
+            }
+            if (this.jugadorSeleccionado.categoria && this.jugadorSeleccionado.categoria !== 'Sin categoría') {
+                this.categoriaManual.value = this.jugadorSeleccionado.categoria;
+            } else {
+                this.categoriaManual.value = '';
+            }
         }
+    }
+    
+    // ============ LIMPIAR CAMPOS ============
+    
+    limpiarCampos() {
+        if (this.edadJugador) {
+            this.edadJugador.value = '';
+        }
+        if (this.categoriaManual) {
+            this.categoriaManual.value = '';
+        }
+        this.jugadorActualDisplay.textContent = 'Sin jugador seleccionado';
     }
     
     // ============ CÁMARA ============
@@ -226,6 +254,29 @@ class CronometroFutbol {
         }
     }
     
+    // ============ PAUSAR CÁMARA ============
+    
+    pausarCamara() {
+        this.camaraPausada = !this.camaraPausada;
+        const btn = document.getElementById('btnPausarCamara');
+        
+        if (this.camaraPausada) {
+            btn.textContent = '▶️ Reanudar Cámara';
+            btn.classList.add('pausado');
+            this.estadoDisplay.textContent = '⏸️ CÁMARA PAUSADA';
+            this.estadoDisplay.style.background = 'rgba(255,165,0,0.3)';
+            console.log('📷 Cámara PAUSADA');
+        } else {
+            btn.textContent = '📷 Pausar Cámara';
+            btn.classList.remove('pausado');
+            this.estadoDisplay.textContent = '⏸️ ESPERANDO';
+            this.estadoDisplay.style.background = 'rgba(0,0,0,0.3)';
+            this.fondo = null;
+            this.ultimoEstado = false;
+            console.log('📷 Cámara REANUDADA');
+        }
+    }
+    
     // ============ DETECCIÓN ============
     
     iniciarDeteccion() {
@@ -244,6 +295,10 @@ class CronometroFutbol {
     }
     
     detectarCruce() {
+        if (this.camaraPausada) {
+            return;
+        }
+        
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = this.video.videoWidth;
         tempCanvas.height = this.video.videoHeight;
@@ -353,7 +408,8 @@ class CronometroFutbol {
             
             const datos = {
                 fecha: new Date().toLocaleString(),
-                categoria: this.categoriaSelect.value || 'Sin categoría',
+                edad: this.jugadorSeleccionado?.edad || 'N/A',
+                categoria: this.jugadorSeleccionado?.categoria || 'Sin categoría',
                 jugador: this.jugadorSeleccionado.nombre,
                 tiempo: tiempoStr,
                 tiempoMs: this.tiempoActual
@@ -397,13 +453,13 @@ class CronometroFutbol {
     // ============ EVENTOS ============
     
     configurarEventos() {
-        this.categoriaSelect.addEventListener('change', () => {
-            this.actualizarSelectores();
-        });
-        
         this.jugadorSelect.addEventListener('change', (e) => {
             if (e.target.value) {
                 this.seleccionarJugador(e.target.value);
+            } else {
+                this.jugadorSeleccionado = null;
+                this.jugadorActualDisplay.textContent = 'Sin jugador seleccionado';
+                this.limpiarCampos();
             }
         });
         
@@ -433,7 +489,8 @@ class CronometroFutbol {
                 const tiempoStr = this.formatearTiempo(this.tiempoActual);
                 const datos = {
                     fecha: new Date().toLocaleString(),
-                    categoria: this.categoriaSelect.value || 'Sin categoría',
+                    edad: this.jugadorSeleccionado?.edad || 'N/A',
+                    categoria: this.jugadorSeleccionado?.categoria || 'Sin categoría',
                     jugador: this.jugadorSeleccionado.nombre,
                     tiempo: tiempoStr,
                     tiempoMs: this.tiempoActual
@@ -479,6 +536,10 @@ class CronometroFutbol {
             }
         });
         
+        document.getElementById('btnPausarCamara').addEventListener('click', () => {
+            this.pausarCamara();
+        });
+        
         // Modal nuevo jugador
         document.getElementById('btnNuevoJugador').addEventListener('click', () => {
             document.getElementById('modalNuevoJugador').style.display = 'block';
@@ -490,21 +551,20 @@ class CronometroFutbol {
         
         document.getElementById('btnGuardarJugador').addEventListener('click', () => {
             const nombre = document.getElementById('nombreNuevoJugador').value.trim();
-            const categoria = this.categoriaSelect.value;
+            const edad = document.getElementById('edadNuevoJugador').value.trim() || 'N/A';
+            const categoria = document.getElementById('categoriaNuevoJugador').value.trim() || 'Sin categoría';
             
             if (!nombre) {
-                alert('Ingresa un nombre');
-                return;
-            }
-            if (!categoria) {
-                alert('Selecciona una categoría');
+                alert('⚠️ Ingresa un nombre');
                 return;
             }
             
             const nuevoJugador = {
                 id: this.jugadores.length > 0 ? Math.max(...this.jugadores.map(j => j.id)) + 1 : 1,
                 nombre: nombre,
-                categoria: categoria
+                edad: edad,
+                categoria: categoria,
+                fecha_registro: new Date().toLocaleString()
             };
             
             this.jugadores.push(nuevoJugador);
@@ -516,8 +576,10 @@ class CronometroFutbol {
             
             document.getElementById('modalNuevoJugador').style.display = 'none';
             document.getElementById('nombreNuevoJugador').value = '';
+            document.getElementById('edadNuevoJugador').value = '';
+            document.getElementById('categoriaNuevoJugador').value = '';
             
-            alert(`✅ Jugador ${nombre} agregado`);
+            alert(`✅ Jugador ${nombre} agregado correctamente`);
         });
         
         document.getElementById('modalNuevoJugador').addEventListener('click', (e) => {
