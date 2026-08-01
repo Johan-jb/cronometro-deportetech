@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>DeporteTech - Cronómetro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>⚽ DEPORTETECH</h1>
+        <p class="subtitulo">Cronómetro · Línea de Meta</p>
+        
+        <!-- ===== CONFIGURACIÓN ===== -->
+        <div class="config-section">
+            <div class="categoria-selector">
+                <label>📂 Categoría:</label>
+                <select id="categoriaSelect">
+                    <option value="">Seleccionar...</option>
+                    <option value="Lunes_Miercoles_6_8">Lunes/Miércoles 6-8</option>
+                    <option value="Martes_Jueves_11_13">Martes/Jueves 11-13</option>
+                </select>
+            </div>
+            
+            <div class="jugador-selector">
+                <label>👤 Jugador:</label>
+                <select id="jugadorSelect">
+                    <option value="">Seleccionar...</option>
+                </select>
+                <button id="btnNuevoJugador" class="btn-small">➕</button>
+            </div>
+        </div>
+        
+        <!-- ===== DISTANCIA ===== -->
+        <div class="configuracion">
+            <h3>📏 Distancia de la cancha</h3>
+            <label>
+                <input type="number" id="distanciaCancha" value="50" min="20" max="100">
+                <span>metros</span>
+            </label>
+            <p style="font-size:0.8rem;color:#aaa;margin-top:5px;">
+                💡 Fútbol 7 = 50m | Fútbol 5 = 40m
+            </p>
+        </div>
+        
+        <!-- ===== CRONÓMETRO ===== -->
+        <div class="cronometro">
+            <div id="tiempo">00:00.0</div>
+            <div class="estado" id="estado">⏸️ ESPERANDO</div>
+            <div class="jugador-actual" id="jugadorActual">Sin jugador seleccionado</div>
+            <div class="velocidad" id="velocidadDisplay"></div>
+        </div>
+        
+        <!-- ===== CÁMARA ===== -->
+        <div class="video-container">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+        </div>
+        
+        <!-- ===== CONTROLES ===== -->
+        <div class="controles">
+            <button id="btnIniciar" class="btn btn-success">▶️ Iniciar</button>
+            <button id="btnReiniciar" class="btn btn-danger">🔄 Reiniciar</button>
+            <button id="btnGuardar" class="btn btn-primary">💾 Guardar</button>
+        </div>
+        
+        <!-- ===== CONFIGURACIÓN DETECCIÓN ===== -->
+        <div class="configuracion">
+            <h3>⚙️ Configuración</h3>
+            <label>Sensibilidad: 
+                <input type="range" id="sensibilidad" min="1" max="20" value="8">
+                <span id="valorSensibilidad">8</span>
+            </label>
+            <button id="btnPosicionarLinea" class="btn-small">📏 Posicionar línea</button>
+            <span id="infoLinea">Línea en 50%</span>
+        </div>
+        
+        <!-- ===== ESTADO CONEXIÓN ===== -->
+        <div id="estadoConexion" style="text-align:center;font-size:0.9rem;padding:8px;margin-bottom:10px;border-radius:8px;background:rgba(0,0,0,0.3);">
+            🔌 Conectando a Google Sheets...
+        </div>
+        
+        <!-- ===== HISTORIAL ===== -->
+        <div class="historial">
+            <div class="historial-header">
+                <h3>📋 Últimos tiempos</h3>
+                <button id="btnActualizar" class="btn-small">🔄</button>
+            </div>
+            <div id="historialJugador">
+                <p class="sin-datos">No hay tiempos registrados</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ===== MODAL NUEVO JUGADOR ===== -->
+    <div id="modalNuevoJugador" class="modal">
+        <div class="modal-content">
+            <span class="cerrar-modal">&times;</span>
+            <h2>➕ Nuevo Jugador</h2>
+            <label>Nombre:</label>
+            <input type="text" id="nombreNuevoJugador" placeholder="Ej: Juan Pérez">
+            <button id="btnGuardarJugador" class="btn btn-primary">Guardar</button>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
