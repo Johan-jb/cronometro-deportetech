@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>DeporteTech - Cronómetro</title>
     <link rel="stylesheet" href="style.css">
+    
+    <!-- ===== LIBRERÍAS PARA PDF (VERSIÓN QUE SÍ FUNCIONA) ===== -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -50,7 +54,7 @@
                 <span>metros</span>
             </label>
             <p style="font-size:0.8rem;color:#aaa;margin-top:5px;">
-                💡 Fútbol 7 = 50m | Fútbol 5 = 40m
+                💡 Fútbol 7 = 50m | Fútbol 5 = 40m | Media cancha = 25m
             </p>
         </div>
         
@@ -79,6 +83,13 @@
         <div class="controles" style="margin-top:5px;">
             <button id="btnPausarCamara" class="btn btn-warning" style="grid-column: span 3; background: linear-gradient(135deg, #ff6b00, #ff8800);">
                 📷 Pausar Cámara
+            </button>
+        </div>
+        
+        <!-- 🔥 BOTÓN EXPORTAR PDF -->
+        <div class="controles" style="margin-top:5px;">
+            <button id="btnExportarPDF" class="btn btn-pdf" style="grid-column: span 3; background: linear-gradient(135deg, #dc3545, #ff6b6b);">
+                📄 Exportar PDF
             </button>
         </div>
         
