@@ -23,7 +23,6 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    /* 🔥 NUEVO: FONDO CON TU IMAGEN */
     background-image: url('fondo_deportetech.png');
     background-size: cover;
     background-position: center;
@@ -32,12 +31,12 @@ body {
     min-height: 100vh;
     display: flex;
     justify-content: center;
+    align-items: center;
     padding: 20px;
     color: var(--blanco);
     position: relative;
 }
 
-/* Capa oscura para legibilidad */
 body::before {
     content: '';
     position: fixed;
@@ -100,26 +99,6 @@ h1::before {
     border-radius: 10px;
 }
 
-.categoria-selector, .jugador-selector {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.config-section label {
-    font-size: 0.8rem;
-    color: var(--gris-oscuro);
-}
-
-.config-section select {
-    padding: 8px;
-    border-radius: 8px;
-    border: 1px solid #333;
-    background: #1a1a2e;
-    color: white;
-    font-size: 0.9rem;
-}
-
 .jugador-selector {
     display: flex;
     flex-direction: row;
@@ -129,6 +108,36 @@ h1::before {
 
 .jugador-selector select {
     flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #1a1a2e;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.config-section label {
+    font-size: 0.8rem;
+    color: var(--gris-oscuro);
+}
+
+/* ===== CAMPOS DE TEXTO EN CONFIGURACIÓN ===== */
+.configuracion input[type="text"],
+.configuracion input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #1a1a2e;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.configuracion input[type="text"]:focus,
+.configuracion input[type="number"]:focus {
+    outline: none;
+    border-color: var(--verde-neon);
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.1);
 }
 
 /* ===== CRONÓMETRO ===== */
@@ -205,7 +214,7 @@ h1::before {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
-    margin-bottom: 16px;
+    margin-bottom: 5px;
 }
 
 .btn {
@@ -236,6 +245,30 @@ h1::before {
 
 .btn-primary {
     background: linear-gradient(135deg, #0066ff, #00ccff);
+}
+
+.btn-warning {
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    width: 100%;
+    background: linear-gradient(135deg, #ff6b00, #ff8800);
+}
+
+.btn-warning:active {
+    transform: scale(0.96);
+}
+
+.btn-warning.pausado {
+    background: linear-gradient(135deg, #00cc66, #00ff88);
+    color: #0a0a1a;
 }
 
 /* ===== CONFIGURACIÓN ===== */
@@ -332,8 +365,10 @@ h1::before {
     background: rgba(255, 255, 255, 0.03);
     margin: 4px 0;
     border-radius: 8px;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     border-left: 2px solid var(--verde-neon);
+    flex-wrap: wrap;
+    gap: 4px;
 }
 
 .tiempo-item .tiempo {
@@ -344,7 +379,22 @@ h1::before {
 
 .tiempo-item .fecha {
     color: var(--gris-oscuro);
-    font-size: 0.7rem;
+    font-size: 0.65rem;
+}
+
+.tiempo-item .jugador-nombre {
+    font-weight: 600;
+    color: var(--blanco);
+}
+
+.tiempo-item .edad-categoria {
+    font-size: 0.65rem;
+    color: var(--gris-oscuro);
+}
+
+.tiempo-item .velocidad-tag {
+    color: var(--naranja);
+    font-weight: 600;
 }
 
 /* ===== MODAL ===== */
